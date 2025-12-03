@@ -6,6 +6,7 @@ import {
   Users,
   UserPlus,
 } from "lucide-react";
+import Image from "next/image";
 
 const navItems = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
@@ -19,12 +20,10 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 flex-col border-r border-[#33383E] bg-[#33383E]/60 p-4 text-sm text-white md:flex">
       <div className="mb-6 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DE9F73] text-xs font-bold text-white">
-          IH
-        </div>
+        <Image src="/logo.jpeg" alt="InnovaHotel" width={32} height={32} />
         <div>
-          <p className="text-sm font-semibold">InnovaHotel</p>
-          <p className="text-xs text-white">Panel de administración</p>
+          <p className="text-lg font-semibold">InnovaHotel</p>
+          <p className="text-sm text-white">Panel de administración</p>
         </div>
       </div>
       <nav className="space-y-1">

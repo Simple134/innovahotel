@@ -85,7 +85,7 @@ export default function BookingsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold text-black">Reservas</h1>
-          <p className="text-xs text-black">
+          <p className="text-lg text-black">
             Control de check-ins, check-outs y estado de reservas.
           </p>
         </div>
@@ -103,13 +103,13 @@ export default function BookingsPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-lg text-rose-100">
           {error}
         </div>
       )}
 
       <div className="overflow-hidden rounded-2xl border border-[#33383E] bg-[#33383E]/60">
-        <table className="min-w-full divide-y divide-[#33383E]/80 text-xs text-white">
+        <table className="min-w-full divide-y divide-[#33383E]/80 text-lg text-white">
           <thead className="bg-[#33383E]/80">
             <tr>
               <th className="px-3 py-2 text-left font-medium">Huésped</th>
@@ -124,7 +124,7 @@ export default function BookingsPage() {
               <tr>
                 <td
                   colSpan={5}
-                  className="px-3 py-6 text-center text-xs text-white"
+                  className="px-3 py-6 text-center text-lg text-white"
                 >
                   Cargando reservas...
                 </td>
@@ -134,7 +134,7 @@ export default function BookingsPage() {
               <tr>
                 <td
                   colSpan={5}
-                  className="px-3 py-6 text-center text-xs text-white"
+                  className="px-3 py-6 text-center text-lg text-white"
                 >
                   Aún no hay reservas registradas.
                 </td>
@@ -146,18 +146,18 @@ export default function BookingsPage() {
                   <td className="px-3 py-2 text-sm font-medium text-white">
                     {booking.guest?.full_name ?? "—"}
                   </td>
-                  <td className="px-3 py-2 align-middle text-xs text-white">
+                  <td className="px-3 py-2 align-middle text-lg text-white">
                     {booking.room
                       ? `Hab. ${booking.room.number}`
                       : booking.room_id}
                   </td>
-                  <td className="px-3 py-2 align-middle text-xs text-white">
+                  <td className="px-3 py-2 align-middle text-lg text-white">
                     {booking.check_in} → {booking.check_out}
                   </td>
-                  <td className="px-3 py-2 align-middle text-xs text-white">
+                  <td className="px-3 py-2 align-middle text-lg text-white">
                     {booking.status}
                   </td>
-                  <td className="px-3 py-2 align-middle text-xs text-white">
+                  <td className="px-3 py-2 align-middle text-lg text-white">
                     {new Date(booking.created_at).toLocaleString()}
                   </td>
                 </tr>

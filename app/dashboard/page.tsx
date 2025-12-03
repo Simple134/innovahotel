@@ -115,14 +115,14 @@ export default function DashboardPage() {
           <h1 className="text-lg font-semibold text-black">
             Dashboard InnovaHotel
           </h1>
-          <p className="text-xs text-black">
+          <p className="text-lg text-black">
             Estado general de habitaciones, reservas y huéspedes.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-lg text-rose-100">
           {error}
         </div>
       )}
@@ -163,7 +163,7 @@ export default function DashboardPage() {
           <div className="mb-3 flex items-center justify-between gap-2 text-sm">
             <div>
               <h2 className="font-medium text-white">Mapa rápido</h2>
-              <p className="text-xs text-white">
+              <p className="text-lg text-white">
                 Lista de habitaciones con estado actual.
               </p>
             </div>
@@ -173,7 +173,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="overflow-hidden rounded-xl border border-[#33383E]/80">
-            <table className="min-w-full divide-y divide-[#33383E]/80 text-xs">
+            <table className="min-w-full divide-y divide-[#33383E]/80 text-lg">
               <thead className="bg-[#33383E]/80 text-white">
                 <tr>
                   <th className="px-3 py-2 text-left font-medium">Habitación</th>
@@ -212,13 +212,13 @@ export default function DashboardPage() {
                       <td className="px-3 py-2 align-middle text-sm font-medium">
                         {room.number}
                       </td>
-                      <td className="px-3 py-2 align-middle text-xs text-white">
+                      <td className="px-3 py-2 align-middle text-lg text-white">
                         {room.type}
                       </td>
                       <td className="px-3 py-2 align-middle">
                         <RoomStatusBadge status={room.status} />
                       </td>
-                      <td className="px-3 py-2 text-right align-middle text-xs text-white">
+                      <td className="px-3 py-2 text-right align-middle text-lg text-white">
                         ${room.price_per_night.toFixed(2)}
                       </td>
                     </tr>
@@ -229,16 +229,16 @@ export default function DashboardPage() {
         </section>
 
         <section className="space-y-4 rounded-2xl border border-[#33383E] bg-[#33383E]/60 p-4 text-sm">
-          <div className="text-xs">
+          <div className="text-lg">
             <p className="mb-1 font-medium text-white">
               Registros de huéspedes
             </p>
-            <p className="text-xs text-white">
+            <p className="text-lg text-white">
               Vista rápida de los últimos huéspedes añadidos al sistema.
             </p>
           </div>
 
-          <div className="pt-2 text-xs">
+          <div className="pt-2 text-lg">
             <h3 className="mb-1 font-medium text-white">
               Últimos huéspedes
             </h3>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                     className="flex items-center justify-between gap-2 rounded-lg bg-[#33383E]/70 px-2 py-1.5"
                   >
                     <div className="truncate">
-                      <p className="truncate text-xs font-medium text-white">
+                      <p className="truncate text-lg font-medium text-white">
                         {guest.full_name}
                       </p>
                       <p className="truncate text-[11px] text-white">
@@ -277,10 +277,10 @@ export default function DashboardPage() {
           <h2 className="text-sm font-medium text-white">
             Check-ins y check-outs de hoy
           </h2>
-          <p className="mt-1 text-xs text-white">
+          <p className="mt-1 text-lg text-white">
             Resumen rápido de movimientos del día actual.
           </p>
-          <div className="mt-4 flex gap-3 text-xs">
+          <div className="mt-4 flex gap-3 text-lg">
             <div className="flex-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
               <p className="text-[11px] font-medium text-emerald-300">
                 Check-ins
@@ -306,10 +306,10 @@ export default function DashboardPage() {
           <h2 className="text-sm font-medium text-white">
             Reservas recientes
           </h2>
-          <p className="mt-1 text-xs text-white">
+          <p className="mt-1 text-lg text-white">
             Últimas reservas creadas en el sistema.
           </p>
-          <ul className="mt-3 space-y-2 text-xs text-white">
+          <ul className="mt-3 space-y-2 text-lg text-white">
             {loading && <li>Cargando reservas...</li>}
             {!loading && data && data.bookings.length === 0 && (
               <li>Aún no hay reservas registradas.</li>
@@ -322,7 +322,7 @@ export default function DashboardPage() {
                   className="flex items-center justify-between gap-2 rounded-xl bg-[#33383E]/70 px-3 py-2"
                 >
                   <div>
-                    <p className="text-xs font-medium text-white">
+                    <p className="text-lg font-medium text-white">
                       Reserva
                     </p>
                     <p className="text-[11px] text-white">

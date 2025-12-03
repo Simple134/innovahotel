@@ -118,7 +118,7 @@ export default function RegisterGuestPage() {
           <h1 className="text-lg font-semibold text-black">
             Registrar huésped
           </h1>
-          <p className="text-xs text-black">
+          <p className="text-lg text-black">
             Añade un nuevo huésped y asigna una habitación disponible.
           </p>
         </div>
@@ -130,17 +130,17 @@ export default function RegisterGuestPage() {
             <h2 className="text-sm font-medium text-white">
               Datos del huésped
             </h2>
-            <p className="text-xs text-white">
+            <p className="text-lg text-white">
               Información básica para el registro.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-2 text-xs">
+          <form onSubmit={handleSubmit} className="space-y-2 text-lg">
             <div className="space-y-1">
               <label className="block text-white">
                 Nombre completo
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Ej. Ana Pérez"
@@ -152,7 +152,7 @@ export default function RegisterGuestPage() {
               <label className="block text-white">
                 Email
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ana@hotel.com"
@@ -162,7 +162,7 @@ export default function RegisterGuestPage() {
               <label className="block text-white">
                 Teléfono
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+34 600 000 000"
@@ -173,7 +173,7 @@ export default function RegisterGuestPage() {
               <label className="block text-white">
                 Documento / ID
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
                   value={documentId}
                   onChange={(e) => setDocumentId(e.target.value)}
                   placeholder="DNI, Pasaporte..."
@@ -184,7 +184,7 @@ export default function RegisterGuestPage() {
               <label className="block text-white">
                 Habitación asignada
                 <select
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
                   value={selectedRoomId}
                   onChange={(e) => setSelectedRoomId(e.target.value)}
                 >
@@ -201,13 +201,13 @@ export default function RegisterGuestPage() {
             <button
               type="submit"
               disabled={saving}
-              className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-[#DE9F73] px-3 py-1.5 text-xs font-medium text-white shadow-sm shadow-[#DE9F73]/30 transition hover:bg-[#DE9F73]/90 disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-[#DE9F73] px-3 py-1.5 text-lg font-medium text-white shadow-sm shadow-[#DE9F73]/30 transition hover:bg-[#DE9F73]/90 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {saving ? "Guardando..." : "Registrar huésped"}
             </button>
 
             {message && (
-              <p className="pt-1 text-xs text-white">{message}</p>
+              <p className="pt-1 text-lg text-white">{message}</p>
             )}
           </form>
         </section>
@@ -217,25 +217,25 @@ export default function RegisterGuestPage() {
             <h2 className="text-sm font-medium text-white">
               Habitaciones disponibles
             </h2>
-            <p className="text-xs text-white">
+            <p className="text-lg text-white">
               Elige una habitación en función del piso, tipo y comodidades.
             </p>
           </div>
 
           {roomsError && (
-            <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+            <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-lg text-rose-100">
               {roomsError}
             </div>
           )}
 
           <div className="grid gap-3 md:grid-cols-2">
             {loadingRooms && (
-              <div className="col-span-2 text-xs text-white">
+              <div className="col-span-2 text-lg text-white">
                 Cargando habitaciones...
               </div>
             )}
             {!loadingRooms && rooms.length === 0 && (
-              <div className="col-span-2 text-xs text-white">
+              <div className="col-span-2 text-lg text-white">
                 No hay habitaciones disponibles en este momento.
               </div>
             )}
@@ -245,7 +245,7 @@ export default function RegisterGuestPage() {
                   key={room.id}
                   type="button"
                   onClick={() => setSelectedRoomId(room.id)}
-                  className={`flex flex-col rounded-xl border px-3 py-2 text-left text-xs transition ${
+                  className={`flex flex-col rounded-xl border px-3 py-2 text-left text-lg transition ${
                     selectedRoomId === room.id
                       ? "border-[#DE9F73] bg-[#33383E]"
                       : "border-[#33383E] bg-[#33383E]/70 hover:bg-[#33383E]"
@@ -255,7 +255,7 @@ export default function RegisterGuestPage() {
                     <p className="text-sm font-semibold text-white">
                       Hab. {room.number}
                     </p>
-                    <p className="text-xs font-medium text-[#DE9F73]">
+                    <p className="text-lg font-medium text-[#DE9F73]">
                       ${room.price_per_night.toFixed(2)}
                     </p>
                   </div>

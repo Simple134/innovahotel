@@ -26,19 +26,19 @@ export function StatCard({
     <div className="rounded-2xl border border-[#33383E] bg-[#33383E]/60 p-4 text-sm text-white">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs text-white">{label}</p>
+          <p className="text-lg text-white">{label}</p>
           <p className="mt-1 text-xl font-semibold">{value}</p>
         </div>
         {icon && (
           <div
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-xs ${accentClasses[accent]}`}
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-lg ${accentClasses[accent]}`}
           >
             {icon}
           </div>
         )}
       </div>
       {description && (
-        <p className="mt-2 text-xs text-white">{description}</p>
+        <p className="mt-2 text-lg text-white">{description}</p>
       )}
     </div>
   );

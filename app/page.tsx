@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import Image from "next/image";
 import { supabaseBrowser } from "@/lib/supabaseClient";
 
 export default function Home() {
@@ -71,7 +71,7 @@ export default function Home() {
 
   if (checkingSession) {
     return (
-      <main className="min-h-screen bg-[#0a0a0a] text-white">
+      <main className="min-h-screen bg-white text-[#0a0a0a]">
         <div className="flex min-h-screen items-center justify-center text-sm">
           Verificando sesión...
         </div>
@@ -80,103 +80,80 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10 md:flex-row md:items-center">
-        <div className="flex-1 space-y-6">
-          <span className="inline-flex items-center rounded-full bg-[#33383E]/60 px-3 py-1 text-xs font-medium text-[#DE9F73] ring-1 ring-[#DE9F73]/30">
-            InnovaHotel · Acceso al panel
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-            Entra a tu dashboard InnovaHotel
-          </h1>
-          <p className="max-w-md text-sm text-white">
-            Inicia sesión o crea tu cuenta para gestionar habitaciones, reservas
-            y huéspedes en tiempo real desde un solo lugar.
-          </p>
-          <ul className="space-y-2 text-xs text-white">
-            <li>• Seguridad gestionada por Supabase Auth.</li>
-            <li>• Acceso rápido para el equipo de recepción.</li>
-          </ul>
-        </div>
-
-        <div className="flex-1">
-          <div className="mx-auto w-full max-w-md rounded-3xl border border-[#33383E] bg-[#33383E]/70 p-6 shadow-xl shadow-[#DE9F73]/20">
-            <div className="mb-4 flex items-center justify-between text-xs text-white">
-              <p className="font-medium">
-                {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
-              </p>
-              <button
-                type="button"
-                onClick={() =>
-                  setMode((prev) => (prev === "login" ? "signup" : "login"))
-                }
-                className="text-[11px] text-[#DE9F73] hover:underline"
-              >
-                {mode === "login"
-                  ? "¿Aún no tienes cuenta? Regístrate"
-                  : "¿Ya tienes cuenta? Inicia sesión"}
-              </button>
+    <main className="min-h-screen bg-white text-[#0a0a0a]">
+      <div className="flex min-h-screen items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-md">
+          <div className="mb-6 flex flex-col items-center gap-3 text-center">
+            <div className="relative h-14 w-14 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+              <Image
+                src="/logo.jpeg"
+                alt="InnovaHotel"
+                fill
+                className="object-cover"
+              />
             </div>
-
-            {error && (
-              <div className="mb-3 rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-white">
-                  Correo electrónico
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="recepcion@tuhotel.com"
-                    className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-3 py-2 text-xs text-white outline-none placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="block text-white">
-                  Contraseña
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-3 py-2 text-xs text-white outline-none placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  />
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-[#DE9F73] px-4 py-2 text-xs font-medium text-white shadow-sm shadow-[#DE9F73]/30 transition hover:bg-[#DE9F73]/90 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading
-                  ? "Procesando..."
-                  : mode === "login"
-                    ? "Entrar al dashboard"
-                    : "Crear cuenta y entrar"}
-              </button>
-
-              <p className="mt-3 text-[11px] text-white/80">
-                Al continuar aceptas que InnovaHotel gestione tus datos de
-                acceso de forma segura mediante Supabase.
-              </p>
-            </form>
-
-            <div className="mt-4 text-[11px] text-white/70">
-              <p>
-                ¿Problemas para entrar? Contacta al administrador de tu hotel
-                para restablecer el acceso.
+            <div>
+              <h1 className="text-base font-semibold tracking-tight">
+                InnovaHotel
+              </h1>
+              <p className="mt-1 text-lg text-gray-500">
+                Acceso al panel de recepción
               </p>
             </div>
           </div>
+
+          <div className="mb-4 flex items-center justify-between text-lg text-gray-700">
+            <p className="font-medium">
+              {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-lg text-rose-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3 text-lg">
+            <div>
+              <label className="block text-lg font-medium text-gray-700">
+                Correo electrónico
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="recepcion@tuhotel.com"
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-lg text-[#0a0a0a] outline-none placeholder:text-gray-400 focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                />
+              </label>
+            </div>
+            <div>
+              <label className="block text-lg font-medium text-gray-700">
+                Contraseña
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-lg text-[#0a0a0a] outline-none placeholder:text-gray-400 focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                />
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-[#DE9F73] px-4 py-2 text-lg font-medium text-white shadow-sm shadow-[#DE9F73]/30 transition hover:bg-[#DE9F73]/90 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading
+                ? "Procesando..."
+                : mode === "login"
+                  ? "Entrar al dashboard"
+                  : "Crear cuenta y entrar"}
+            </button>
+          </form>
         </div>
       </div>
     </main>
