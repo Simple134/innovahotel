@@ -4,6 +4,7 @@ import {
   CalendarCheck2,
   LayoutDashboard,
   Users,
+  UserPlus,
 } from "lucide-react";
 
 const navItems = [
@@ -11,6 +12,7 @@ const navItems = [
   { href: "/dashboard/rooms", label: "Habitaciones", icon: BedDouble },
   { href: "/dashboard/bookings", label: "Reservas", icon: CalendarCheck2 },
   { href: "/dashboard/guests", label: "Huéspedes", icon: Users },
+  { href: "/dashboard/register", label: "Registrar", icon: UserPlus },
 ];
 
 export function Sidebar() {

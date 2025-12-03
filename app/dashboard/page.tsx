@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabaseClient";
 import { Tables } from "@/database.types";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -23,16 +24,11 @@ type DashboardData = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [documentId, setDocumentId] = useState("");
-  const [savingGuest, setSavingGuest] = useState(false);
-  const [guestMessage, setGuestMessage] = useState<string | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -71,8 +67,23 @@ export default function DashboardPage() {
       setLoading(false);
     };
 
-    fetchAll();
-  }, []);
+    const checkSessionAndFetch = async () => {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabaseBrowser.auth.getSession();
+
+      if (sessionError || !session) {
+        router.replace("/");
+        return;
+      }
+
+      await fetchAll();
+      setCheckingSession(false);
+    };
+
+    checkSessionAndFetch();
+  }, [router]);
 
   const totalRooms = data?.rooms.length ?? 0;
   const availableRooms = data?.rooms.filter((r) => r.status === "available")
@@ -89,48 +100,13 @@ export default function DashboardPage() {
     (b) => b.check_out === today,
   ).length;
 
-  const handleGuestSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!fullName.trim()) {
-      setGuestMessage("El nombre completo es obligatorio.");
-      return;
-    }
-
-    setSavingGuest(true);
-    setGuestMessage(null);
-
-    const { data: inserted, error: insertError } = await supabaseBrowser
-      .from("guests")
-      .insert({
-        full_name: fullName.trim(),
-        email: email.trim() || null,
-        phone: phone.trim() || null,
-        document_id: documentId.trim() || null,
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error(insertError);
-      setGuestMessage("No se pudo registrar el huésped. Intenta de nuevo.");
-    } else {
-      setGuestMessage("Huésped registrado correctamente.");
-      setFullName("");
-      setEmail("");
-      setPhone("");
-      setDocumentId("");
-
-      setData((prev) => {
-        if (!prev || !inserted) return prev;
-        return {
-          ...prev,
-          guests: [inserted as Guest, ...prev.guests].slice(0, 8),
-        };
-      });
-    }
-
-    setSavingGuest(false);
-  };
+  if (checkingSession) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-white">
+        Verificando sesión...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -253,73 +229,14 @@ export default function DashboardPage() {
         </section>
 
         <section className="space-y-4 rounded-2xl border border-[#33383E] bg-[#33383E]/60 p-4 text-sm">
-          <div>
-            <h2 className="text-sm font-medium text-white">
-              Registro rápido de huésped
-            </h2>
+          <div className="text-xs">
+            <p className="mb-1 font-medium text-white">
+              Registros de huéspedes
+            </p>
             <p className="text-xs text-white">
-              Guarda la información básica para acelerar futuros check-ins.
+              Vista rápida de los últimos huéspedes añadidos al sistema.
             </p>
           </div>
-
-          <form onSubmit={handleGuestSubmit} className="space-y-2 text-xs">
-            <div className="space-y-1">
-              <label className="block text-white">
-                Nombre completo
-                <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ej. Ana Pérez"
-                  required
-                />
-              </label>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="block text-white">
-                Email
-                <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ana@hotel.com"
-                  type="email"
-                />
-              </label>
-              <label className="block text-white">
-                Teléfono
-                <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+34 600 000 000"
-                />
-              </label>
-            </div>
-            <div className="space-y-1">
-              <label className="block text-white">
-                Documento / ID
-                <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-xs text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={documentId}
-                  onChange={(e) => setDocumentId(e.target.value)}
-                  placeholder="DNI, Pasaporte..."
-                />
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={savingGuest}
-              className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-[#DE9F73] px-3 py-1.5 text-xs font-medium text-white shadow-sm shadow-[#DE9F73]/30 transition hover:bg-[#DE9F73]/90 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {savingGuest ? "Guardando..." : "Registrar huésped"}
-            </button>
-          </form>
-
-          {guestMessage && (
-            <p className="text-xs text-white">{guestMessage}</p>
-          )}
 
           <div className="pt-2 text-xs">
             <h3 className="mb-1 font-medium text-white">
