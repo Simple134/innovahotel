@@ -1,31 +1,64 @@
- "use client";
+"use client";
 
-import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabaseClient";
-import { User } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Bell, ChevronRight } from "lucide-react";
+
+const routeLabels: Record<string, string> = {
+  "/dashboard": "Resumen",
+  "/dashboard/rooms": "Habitaciones",
+  "/dashboard/bookings": "Reservas",
+  "/dashboard/guests": "Huéspedes",
+  "/dashboard/register": "Registrar huésped",
+  "/dashboard/hoteles": "Hoteles",
+  "/dashboard/empleados": "Empleados",
+  "/dashboard/nomina": "Nómina",
+  "/dashboard/gastos": "Gastos",
+  "/dashboard/reportes": "Reportes",
+};
 
 export function Topbar() {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await supabaseBrowser.auth.signOut();
-    router.replace("/");
-  };
+  const pathname = usePathname();
+  const currentLabel = routeLabels[pathname] ?? "Dashboard";
 
   return (
-    <header className="flex items-center justify-between border-b border-[#33383E] bg-[#33383E]/60 px-4 py-3 text-sm text-white">
-      <div className="flex flex-col">
-        <span className="text-lg text-white">Panel principal</span>
-        <span className="font-medium">Dashboard</span>
+    <header
+      className="flex items-center justify-between px-6 py-3.5"
+      style={{
+        background: "var(--bg-surface)",
+        borderBottom: "1px solid var(--border-default)",
+      }}
+    >
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-sm">
+        <span style={{ color: "var(--text-muted)" }}>InnovaHotel</span>
+        <ChevronRight size={13} style={{ color: "var(--text-muted)" }} />
+        <span className="font-medium" style={{ color: "var(--text-primary)" }}>
+          {currentLabel}
+        </span>
       </div>
-      <div className="flex items-center gap-3 text-lg text-white">
+
+      {/* Right side */}
+      <div className="flex items-center gap-3">
+        {/* Notification placeholder */}
         <button
           type="button"
-          onClick={handleLogout}
-          className="hidden rounded-full px-2 py-1 text-lg text-white transition hover:bg-[#33383E] sm:inline cursor-pointer"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+          style={{ color: "var(--text-muted)" }}
         >
-          Cerrar sesión
+          <Bell size={15} />
         </button>
+
+        {/* User avatar */}
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold"
+          style={{
+            background: "var(--gold-dim)",
+            color: "var(--gold)",
+            border: "1px solid var(--gold-glow)",
+          }}
+        >
+          AD
+        </div>
       </div>
     </header>
   );

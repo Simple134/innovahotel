@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabaseBrowser } from "@/lib/supabaseClient";
 import { Tables } from "@/database.types";
+import { CheckCircle2 } from "lucide-react";
+import { NoHotelSelected } from "@/components/dashboard/NoHotelSelected";
+import { useHotel } from "@/contexts/HotelContext";
 
 type Room = Tables<"rooms">;
 type Guest = Tables<"guests">;
 
-type RoomWithStatus = Room;
-
 export default function RegisterGuestPage() {
-  const [rooms, setRooms] = useState<RoomWithStatus[]>([]);
+  const { selectedHotel } = useHotel();
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [roomsError, setRoomsError] = useState<string | null>(null);
 
@@ -19,51 +21,46 @@ export default function RegisterGuestPage() {
   const [phone, setPhone] = useState("");
   const [documentId, setDocumentId] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [checkIn, setCheckIn] = useState(new Date().toISOString().slice(0, 10));
+  const [checkOut, setCheckOut] = useState("");
   const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const fetchRooms = async (hotelId: string) => {
+    setLoadingRooms(true);
+    const { data, error } = await supabaseBrowser
+      .from("rooms")
+      .select("*")
+      .eq("hotel_id", hotelId)
+      .eq("status", "available")
+      .order("number", { ascending: true });
+    if (error) setRoomsError("No se pudieron cargar las habitaciones.");
+    else setRooms((data ?? []) as Room[]);
+    setLoadingRooms(false);
+  };
+
   useEffect(() => {
-    const fetchRooms = async () => {
-      setLoadingRooms(true);
-      setRoomsError(null);
-
-      const { data, error } = await supabaseBrowser
-        .from("rooms")
-        .select("*")
-        .eq("status", "available")
-        .order("number", { ascending: true });
-
-      if (error) {
-        console.error(error);
-        setRoomsError("No se pudieron cargar las habitaciones disponibles.");
-      } else {
-        setRooms((data ?? []) as RoomWithStatus[]);
-      }
-
-      setLoadingRooms(false);
-    };
-
-    fetchRooms();
-  }, []);
+    if (!selectedHotel) { setRooms([]); setLoadingRooms(false); return; }
+    fetchRooms(selectedHotel.id);
+  }, [selectedHotel]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setMessage(null);
+    setSuccess(false);
 
-    if (!fullName.trim()) {
-      setMessage("El nombre completo es obligatorio.");
-      return;
-    }
-
-    if (!selectedRoomId) {
-      setMessage("Debes seleccionar una habitación disponible.");
-      return;
-    }
+    if (!selectedHotel) return;
+    if (!fullName.trim()) { setMessage("El nombre completo es obligatorio."); return; }
+    if (!selectedRoomId) { setMessage("Debes seleccionar una habitación disponible."); return; }
+    if (!checkIn) { setMessage("La fecha de check-in es obligatoria."); return; }
+    if (!checkOut) { setMessage("La fecha de check-out es obligatoria."); return; }
+    if (checkOut <= checkIn) { setMessage("El check-out debe ser posterior al check-in."); return; }
 
     setSaving(true);
 
     try {
-      // 1) Crear huésped
+      // 1. Create guest
       const { data: guest, error: guestError } = await supabaseBrowser
         .from("guests")
         .insert({
@@ -76,34 +73,51 @@ export default function RegisterGuestPage() {
         .single<Guest>();
 
       if (guestError || !guest) {
-        console.error(guestError);
         setMessage("No se pudo registrar el huésped. Intenta de nuevo.");
         setSaving(false);
         return;
       }
 
-      // 2) Marcar habitación como ocupada
+      // 2. Mark room as occupied
       const { error: roomError } = await supabaseBrowser
         .from("rooms")
         .update({ status: "occupied" })
         .eq("id", selectedRoomId);
 
       if (roomError) {
-        console.error(roomError);
-        setMessage(
-          "Huésped creado, pero no se pudo actualizar el estado de la habitación."
-        );
-      } else {
-        setMessage("Huésped y habitación registrados correctamente.");
-
-        // limpiar formulario y actualizar lista de habitaciones disponibles
-        setFullName("");
-        setEmail("");
-        setPhone("");
-        setDocumentId("");
-        setSelectedRoomId("");
-        setRooms((prev) => prev.filter((room) => room.id !== selectedRoomId));
+        setMessage("Huésped creado, pero no se pudo actualizar la habitación.");
+        setSaving(false);
+        return;
       }
+
+      // 3. Create booking linked to hotel
+      const nights =
+        (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24);
+      const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
+      const totalAmount = selectedRoom ? selectedRoom.price_per_night * nights : null;
+
+      const { error: bookingError } = await supabaseBrowser.from("bookings").insert({
+        hotel_id: selectedHotel.id,
+        guest_id: guest.id,
+        room_id: selectedRoomId,
+        check_in: checkIn,
+        check_out: checkOut,
+        status: "active",
+        currency: selectedHotel.currency ?? "MXN",
+        total_amount: totalAmount,
+      });
+
+      if (bookingError) {
+        setMessage("Huésped y habitación actualizados, pero no se pudo crear la reserva.");
+        setSaving(false);
+        return;
+      }
+
+      setSuccess(true);
+      setFullName(""); setEmail(""); setPhone(""); setDocumentId("");
+      setSelectedRoomId(""); setCheckOut("");
+      setCheckIn(new Date().toISOString().slice(0, 10));
+      setRooms((prev) => prev.filter((r) => r.id !== selectedRoomId));
     } catch {
       setMessage("Ocurrió un error inesperado. Intenta de nuevo.");
     } finally {
@@ -111,162 +125,258 @@ export default function RegisterGuestPage() {
     }
   };
 
+  const inputStyle = {
+    background: "var(--bg-elevated)",
+    border: "1px solid var(--border-default)",
+    color: "var(--text-primary)",
+  };
+
+  const labelStyle = { color: "var(--text-secondary)", fontSize: "12px", fontWeight: 500 };
+
+  if (!selectedHotel) return <NoHotelSelected />;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold text-black">
-            Registrar huésped
-          </h1>
-          <p className="text-lg text-black">
-            Añade un nuevo huésped y asigna una habitación disponible.
-          </p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1
+          className="text-3xl font-semibold"
+          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "0.01em" }}
+        >
+          Registrar huésped
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+          {selectedHotel.name}
+        </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <section className="space-y-4 rounded-2xl border border-[#33383E] bg-[#33383E]/60 p-4 text-sm lg:col-span-1">
+      <div className="grid gap-5 lg:grid-cols-3">
+        {/* Form */}
+        <section
+          className="lg:col-span-1 rounded-xl p-5 space-y-4"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+        >
           <div>
-            <h2 className="text-sm font-medium text-white">
-              Datos del huésped
-            </h2>
-            <p className="text-lg text-white">
-              Información básica para el registro.
-            </p>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Datos del huésped</h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Información para el registro de recepción</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-2 text-lg">
-            <div className="space-y-1">
-              <label className="block text-white">
-                Nombre completo
-                <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ej. Ana Pérez"
-                  required
-                />
-              </label>
+          {success && (
+            <div
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm"
+              style={{ background: "var(--emerald-dim)", color: "var(--emerald)", border: "1px solid rgba(45,212,160,0.2)" }}
+            >
+              <CheckCircle2 size={15} />
+              Huésped registrado y reserva creada
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="block text-white">
-                Email
+          )}
+
+          {message && !success && (
+            <div
+              className="rounded-lg px-3 py-2.5 text-sm"
+              style={{ background: "var(--rose-dim)", color: "var(--rose)", border: "1px solid rgba(244,74,107,0.2)" }}
+            >
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="block" style={labelStyle}>Nombre completo *</label>
+              <input
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                style={inputStyle}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Ej. Ana García"
+                required
+                onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="block" style={labelStyle}>Email</label>
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                  style={inputStyle}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ana@hotel.com"
+                  placeholder="ana@mail.com"
                   type="email"
+                  onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
                 />
-              </label>
-              <label className="block text-white">
-                Teléfono
+              </div>
+              <div className="space-y-1.5">
+                <label className="block" style={labelStyle}>Teléfono</label>
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                  style={inputStyle}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+34 600 000 000"
+                  placeholder="+1 000 000"
+                  onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
                 />
-              </label>
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-white">
-                Documento / ID
+
+            <div className="space-y-1.5">
+              <label className="block" style={labelStyle}>Documento / ID</label>
+              <input
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                style={inputStyle}
+                value={documentId}
+                onChange={(e) => setDocumentId(e.target.value)}
+                placeholder="DNI, Pasaporte..."
+                onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="block" style={labelStyle}>Check-in *</label>
                 <input
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none ring-0 placeholder:text-white focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={documentId}
-                  onChange={(e) => setDocumentId(e.target.value)}
-                  placeholder="DNI, Pasaporte..."
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                  style={inputStyle}
+                  type="date"
+                  value={checkIn}
+                  onChange={(e) => setCheckIn(e.target.value)}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
                 />
-              </label>
+              </div>
+              <div className="space-y-1.5">
+                <label className="block" style={labelStyle}>Check-out *</label>
+                <input
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                  style={inputStyle}
+                  type="date"
+                  value={checkOut}
+                  min={checkIn}
+                  onChange={(e) => setCheckOut(e.target.value)}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-white">
-                Habitación asignada
-                <select
-                  className="mt-1 w-full rounded-lg border border-[#33383E] bg-[#33383E] px-2 py-1.5 text-lg text-white outline-none focus:border-[#DE9F73] focus:ring-1 focus:ring-[#DE9F73]/60"
-                  value={selectedRoomId}
-                  onChange={(e) => setSelectedRoomId(e.target.value)}
-                >
-                  <option value="">Selecciona una habitación disponible</option>
-                  {rooms.map((room) => (
-                    <option key={room.id} value={room.id}>
-                      {room.number} — {room.type}
-                    </option>
-                  ))}
-                </select>
-              </label>
+
+            <div className="space-y-1.5">
+              <label className="block" style={labelStyle}>Habitación asignada *</label>
+              <select
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                style={{ ...inputStyle, cursor: "pointer" }}
+                value={selectedRoomId}
+                onChange={(e) => setSelectedRoomId(e.target.value)}
+                onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
+              >
+                <option value="">Selecciona habitación disponible</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.number} — {room.type} (${room.price_per_night}/noche)
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {/* Price preview */}
+            {selectedRoomId && checkIn && checkOut && checkOut > checkIn && (() => {
+              const nights = Math.round(
+                (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
+              );
+              const room = rooms.find((r) => r.id === selectedRoomId);
+              const total = room ? room.price_per_night * nights : 0;
+              return (
+                <div className="rounded-lg px-3 py-2 text-xs" style={{ background: "var(--gold-dim)", color: "var(--gold-light)" }}>
+                  {nights} noche{nights !== 1 ? "s" : ""} · Total estimado:{" "}
+                  <span className="font-semibold">${total.toFixed(2)} {selectedHotel.currency ?? "MXN"}</span>
+                </div>
+              );
+            })()}
 
             <button
               type="submit"
               disabled={saving}
-              className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-[#DE9F73] px-3 py-1.5 text-lg font-medium text-white shadow-sm shadow-[#DE9F73]/30 transition hover:bg-[#DE9F73]/90 disabled:cursor-not-allowed disabled:opacity-70"
+              className="w-full rounded-lg py-2.5 text-sm font-semibold transition-all mt-1"
+              style={{
+                background: saving ? "var(--gold-dim)" : "var(--gold)",
+                color: saving ? "var(--gold-light)" : "#0D0F1A",
+                cursor: saving ? "not-allowed" : "pointer",
+              }}
             >
               {saving ? "Guardando..." : "Registrar huésped"}
             </button>
-
-            {message && (
-              <p className="pt-1 text-lg text-white">{message}</p>
-            )}
           </form>
         </section>
 
-        <section className="space-y-3 rounded-2xl border border-[#33383E] bg-[#33383E]/60 p-4 text-sm lg:col-span-2">
-          <div>
-            <h2 className="text-sm font-medium text-white">
-              Habitaciones disponibles
-            </h2>
-            <p className="text-lg text-white">
-              Elige una habitación en función del piso, tipo y comodidades.
+        {/* Room picker */}
+        <section
+          className="lg:col-span-2 rounded-xl overflow-hidden"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+        >
+          <div
+            className="px-5 py-4"
+            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+          >
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Habitaciones disponibles</h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+              {loadingRooms ? "Cargando..." : `${rooms.length} habitación${rooms.length !== 1 ? "es" : ""} disponible${rooms.length !== 1 ? "s" : ""}`}
             </p>
           </div>
 
-          {roomsError && (
-            <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-lg text-rose-100">
-              {roomsError}
-            </div>
-          )}
+          <div className="p-5">
+            {roomsError && (
+              <div className="rounded-lg px-3 py-2.5 text-sm mb-4" style={{ background: "var(--rose-dim)", color: "var(--rose)" }}>
+                {roomsError}
+              </div>
+            )}
 
-          <div className="grid gap-3 md:grid-cols-2">
-            {loadingRooms && (
-              <div className="col-span-2 text-lg text-white">
-                Cargando habitaciones...
-              </div>
-            )}
             {!loadingRooms && rooms.length === 0 && (
-              <div className="col-span-2 text-lg text-white">
-                No hay habitaciones disponibles en este momento.
+              <div className="text-sm py-8 text-center" style={{ color: "var(--text-muted)" }}>
+                No hay habitaciones disponibles en este hotel.
               </div>
             )}
-            {!loadingRooms &&
-              rooms.map((room) => (
-                <button
-                  key={room.id}
-                  type="button"
-                  onClick={() => setSelectedRoomId(room.id)}
-                  className={`flex flex-col rounded-xl border px-3 py-2 text-left text-lg transition ${
-                    selectedRoomId === room.id
-                      ? "border-[#DE9F73] bg-[#33383E]"
-                      : "border-[#33383E] bg-[#33383E]/70 hover:bg-[#33383E]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-white">
-                      Hab. {room.number}
-                    </p>
-                    <p className="text-lg font-medium text-[#DE9F73]">
-                      ${room.price_per_night.toFixed(2)}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-[11px] text-white">{room.type}</p>
-                </button>
-              ))}
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {!loadingRooms && rooms.map((room) => {
+                const selected = selectedRoomId === room.id;
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => setSelectedRoomId(room.id)}
+                    className="flex flex-col rounded-xl p-4 text-left transition-all"
+                    style={{
+                      background: selected ? "var(--gold-dim)" : "var(--bg-elevated)",
+                      border: selected ? "1px solid var(--gold)" : "1px solid var(--border-default)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: selected ? "var(--gold-light)" : "var(--text-primary)" }}>
+                          Hab. {room.number}
+                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{room.type}</p>
+                      </div>
+                      <p className="text-sm font-semibold" style={{ color: "var(--gold)" }}>
+                        ${room.price_per_night.toFixed(2)}
+                      </p>
+                    </div>
+                    {selected && (
+                      <span className="mt-2 text-xs" style={{ color: "var(--gold)" }}>✓ Seleccionada</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </section>
       </div>
     </div>
   );
 }
-
-

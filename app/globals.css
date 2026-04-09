@@ -1,31 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --primary: #DE9F73;
-  --primary-dark: #c88d5f;
-  --primary-light: #e8b896;
-  --secondary: #33383E;
-  --secondary-light: #4a5058;
-  --secondary-dark: #25282d;
+  /* Core palette */
+  --bg-base:       #0D0F1A;
+  --bg-surface:    #141625;
+  --bg-elevated:   #1C1F35;
+  --bg-overlay:    #252840;
+
+  /* Borders */
+  --border-subtle: #1F2237;
+  --border-default:#252840;
+  --border-strong: #2E3355;
+
+  /* Gold — brand accent */
+  --gold:          #C8986A;
+  --gold-light:    #E0B48A;
+  --gold-dim:      rgba(200, 152, 106, 0.12);
+  --gold-glow:     rgba(200, 152, 106, 0.25);
+
+  /* Text */
+  --text-primary:  #EDE8DF;
+  --text-secondary:#8A8DA8;
+  --text-muted:    #505472;
+
+  /* Status colors */
+  --emerald:       #2DD4A0;
+  --emerald-dim:   rgba(45, 212, 160, 0.12);
+  --amber:         #F5A623;
+  --amber-dim:     rgba(245, 166, 35, 0.12);
+  --rose:          #F44A6B;
+  --rose-dim:      rgba(244, 74, 107, 0.12);
+  --blue:          #6C87EA;
+  --blue-dim:      rgba(108, 135, 234, 0.12);
+
+  /* Typography */
+  --font-display:  var(--font-display), 'Georgia', serif;
+  --font-body:     var(--font-body), system-ui, sans-serif;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
-  --color-primary-light: var(--primary-light);
-  --color-secondary: var(--secondary);
-  --color-secondary-light: var(--secondary-light);
-  --color-secondary-dark: var(--secondary-dark);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --color-primary:    var(--gold);
+  --font-sans:        var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* Selection */
+::selection { background: var(--gold-dim); color: var(--gold-light); }

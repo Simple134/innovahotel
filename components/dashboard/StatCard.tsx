@@ -5,14 +5,19 @@ interface StatCardProps {
   value: string | number;
   description?: string;
   icon?: ReactNode;
-  accent?: "primary" | "emerald" | "amber" | "rose";
+  trend?: { value: string; up: boolean };
+  accent?: "gold" | "emerald" | "amber" | "rose" | "blue";
 }
 
-const accentClasses: Record<NonNullable<StatCardProps["accent"]>, string> = {
-  primary: "bg-[#DE9F73]/15 text-[#DE9F73]",
-  emerald: "bg-emerald-500/15 text-emerald-300",
-  amber: "bg-amber-500/15 text-amber-300",
-  rose: "bg-rose-500/15 text-rose-300",
+const accentMap: Record<
+  NonNullable<StatCardProps["accent"]>,
+  { icon: string; badge: string; border: string }
+> = {
+  gold:    { icon: "var(--gold-dim)",    badge: "var(--gold)",    border: "var(--gold-glow)" },
+  emerald: { icon: "var(--emerald-dim)", badge: "var(--emerald)", border: "rgba(45,212,160,0.25)" },
+  amber:   { icon: "var(--amber-dim)",   badge: "var(--amber)",   border: "rgba(245,166,35,0.25)" },
+  rose:    { icon: "var(--rose-dim)",    badge: "var(--rose)",    border: "rgba(244,74,107,0.25)" },
+  blue:    { icon: "var(--blue-dim)",    badge: "var(--blue)",    border: "rgba(108,135,234,0.25)" },
 };
 
 export function StatCard({
@@ -20,25 +25,61 @@ export function StatCard({
   value,
   description,
   icon,
-  accent = "primary",
+  trend,
+  accent = "gold",
 }: StatCardProps) {
+  const colors = accentMap[accent];
+
   return (
-    <div className="rounded-2xl border border-[#33383E] bg-[#33383E]/60 p-4 text-sm text-white">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-lg text-white">{label}</p>
-          <p className="mt-1 text-xl font-semibold">{value}</p>
-        </div>
+    <div
+      className="rounded-xl p-5 flex flex-col gap-3"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-default)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+          {label}
+        </p>
         {icon && (
           <div
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-lg ${accentClasses[accent]}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0"
+            style={{ background: colors.icon, color: colors.badge }}
           >
             {icon}
           </div>
         )}
       </div>
+
+      <div className="flex items-end justify-between gap-2">
+        <p
+          className="text-3xl font-semibold leading-none"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {value}
+        </p>
+        {trend && (
+          <span
+            className="text-xs font-medium px-1.5 py-0.5 rounded-md"
+            style={{
+              color: trend.up ? "var(--emerald)" : "var(--rose)",
+              background: trend.up ? "var(--emerald-dim)" : "var(--rose-dim)",
+            }}
+          >
+            {trend.up ? "↑" : "↓"} {trend.value}
+          </span>
+        )}
+      </div>
+
       {description && (
-        <p className="mt-2 text-lg text-white">{description}</p>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          {description}
+        </p>
       )}
     </div>
   );
